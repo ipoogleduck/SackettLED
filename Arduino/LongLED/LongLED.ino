@@ -259,7 +259,8 @@ void readString(String string) {
       Serial.println(newString);
       return;
     } else if (ch == 'w') {
-      fullStartString = "t2c0000x151515Search for Sackett LED on the App Store|sr";
+//      fullStartString = "t2c0000x151515Search for Sackett LED on the App Store|sr";
+      fullStartString = "f000000t1c0800x121212Download|t1c0009x151515SACKETT|t1c4708x151515LED|Bd2000f000000t1c1400x151515On The|t1c0508x030315App Store|Bd2000f000000t1c1104x151515To Play|Bd2000r";
       readString(fullStartString);
     }
     i++;

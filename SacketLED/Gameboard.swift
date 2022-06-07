@@ -140,16 +140,19 @@ class Gameboard {
     
     //MARK: Public Functions
     
+    ///Initializes game with a starting level
     init(level: Level) {
         clearBoard()
         do {
-            try AVAudioSession.sharedInstance().setCategory(.playback)
+            try AVAudioSession.sharedInstance().setCategory(.playback) //Sets playback to play regardless of mute switch
         } catch(let error) {
             print(error.localizedDescription)
         }
         self.level = level
     }
     
+    ///Starts/restarts game, including music.
+    ///Note that stopGame() should be called before restarting the game
     func startGame() {
         isRunning = true
         delegate?.displayRefresh(solidBoard)
@@ -159,6 +162,8 @@ class Gameboard {
         startBlockTimer()
     }
     
+    ///Stops game and music, calls delegate method gameEnd with ending info.
+    ///fullGame should be true if game was played to the end, otherwise if it ends early (ie user quits) it should be false
     func stopGame(fullGame: Bool = false) {
         isRunning = false
         delegate?.gameEnd(score: score, scoreString: scoreString(), level: level, clears: clears, fullGame: fullGame)
@@ -166,6 +171,9 @@ class Gameboard {
         musicPlayer?.stop()
     }
     
+    ///Starts soft drop of shape, where shape moves down fast.
+    ///This method should be called from a Long Press Gesture Recognizer in UIKit.
+    ///Note that you must call endShapeSoftDrop() when user lifts finger from button
     func startShapeSoftDrop() {
         downPressTimer?.invalidate()
         blockTimer?.invalidate()
@@ -185,6 +193,8 @@ class Gameboard {
         }
     }
     
+    ///Stops shape soft drop, should be called after startShapeSoftDrop()
+    ///Will be called automatically when shape reaches it's lowest point in the gameboard
     func endShapeSoftDrop() {
         if isRunning {
             startBlockTimer()
@@ -192,6 +202,10 @@ class Gameboard {
         downPressTimer?.invalidate()
     }
     
+    ///Starts movement of block left or right.
+    ///There is an initial delay after the first movement, and then block is moved fast sideways if endMoveTimer() hasn't been called.
+    ///This method should be called from a Long Press Gesture Recognizer in UIKit.
+    ///You must call endMoveTimer() to stop movement, should be called when user lifts finger from the Long Press Gesture Recognizer
     func startMoveTimer(for leftButton: Bool) {
         movePressTimer?.invalidate()
         currentMovePress += 1
@@ -212,12 +226,13 @@ class Gameboard {
         }
     }
     
+    ///Stops shape side to side movement, should be called after startMoveTimer()
     func endMoveTimer() {
         currentMovePress += 1
         movePressTimer?.invalidate()
     }
     
-//    func dropShape() {
+//    func hardDropShape() {
 //        guard var shape = currentShape else { return }
 //        while !shapeAtLowest(shape) {
 //            shape.moveDown()
@@ -234,6 +249,7 @@ class Gameboard {
 //        }
 //    }
     
+    ///As an alternative to startMoveTimer(), this method can be used to move the shape once to the left, if it doesn't collide with other blocks
     func moveShapeLeft() {
         guard var shape = currentShape else { return }
         if shape.moveLeft() && !shapeColides(shape) {
@@ -243,6 +259,7 @@ class Gameboard {
         }
     }
     
+    ///As an alternative to startMoveTimer(), this method can be used to move the shape once to the right, if it doesn't collide with other blocks
     func moveShapeRight() {
         guard var shape = currentShape else { return }
         if shape.moveRight() && !shapeColides(shape) {
@@ -252,6 +269,7 @@ class Gameboard {
         }
     }
     
+    ///Rotates shape once to the right, if it doesn't collide with other blocks
     func rotateShapeRight() {
         guard var shape = currentShape else { return }
         if shape.rotateRight() && !shapeColides(shape) {
@@ -261,6 +279,7 @@ class Gameboard {
         }
     }
     
+    ///Rotates shape once to the left, if it doesn't collide with other blocks
     func rotateShapeLeft() {
         guard var shape = currentShape else { return }
         if shape.rotateLeft() && !shapeColides(shape) {
@@ -270,6 +289,8 @@ class Gameboard {
         }
     }
     
+    ///Will trigger all delagate methods that provide game info.
+    ///Usefull for when display may be out of date if user moves out of connection range for a while
     func requestFullDisplayRefresh() {
         refreshDisplay()
         delegate?.updateScore(with: scoreString())
